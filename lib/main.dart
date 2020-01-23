@@ -88,9 +88,10 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text("Tarefas", style: TextStyle(color: Colors.black),),
-        backgroundColor: Color.fromRGBO(250, 250, 250, 1),
+        backgroundColor: Colors.white,
         elevation: 0,
         brightness: Brightness.light,
         centerTitle: true,
@@ -118,8 +119,8 @@ class _HomeState extends State<Home> {
                           labelText: "Nova tarefa",
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(100)),
                           filled: true,
-                          enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Color.fromRGBO(250, 250, 250, 1)), borderRadius: BorderRadius.circular(15)),
-                          focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Color.fromRGBO(250, 250, 250, 1)), borderRadius: BorderRadius.circular(15)),
+                          enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white), borderRadius: BorderRadius.circular(15)),
+                          focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white), borderRadius: BorderRadius.circular(15)),
                         ),
                       ),
                     ),

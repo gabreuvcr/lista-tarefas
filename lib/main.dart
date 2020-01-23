@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
 
-
+const yellow = Color.fromRGBO(240, 210, 58, 1);
 
 void main() {
   runApp(
@@ -13,7 +13,14 @@ void main() {
       home: Home(),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        accentColor: Color.fromRGBO(240, 210, 58, 1),
+        splashColor: Colors.white,
+        primaryColor: Colors.white,
+        primarySwatch: Colors.grey,
+        accentColor: yellow,
+        cursorColor: yellow,
+        brightness: Brightness.light,
+        textSelectionColor: yellow,
+        textSelectionHandleColor: yellow,
       ),
     )
   );
@@ -27,7 +34,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
 
   List _toDoList = [];
-
+  String _dateTime;
   Map<String, dynamic> _lastRemoved;
   int _lastRemovedPos;
 
@@ -42,6 +49,8 @@ class _HomeState extends State<Home> {
       systemNavigationBarColor: Colors.transparent,
       systemNavigationBarIconBrightness: Brightness.dark));
       
+    _dateTime = getDate(DateTime.now());  
+    
     _readData().then((data) {
       setState(() {
         _toDoList = json.decode(data);
@@ -49,25 +58,44 @@ class _HomeState extends State<Home> {
     });
   }
 
+  String getDate(DateTime date) {
+    return date.toString()
+               .substring(0, 10)
+               .replaceAll("-", "");
+  }
+
   void _addToDo() {
-    if(_toDoController.text.trim().isEmpty) {
-      return;
-    }
-    else {
+    if(_toDoController.text.trim().isNotEmpty) {
       setState(() {
-      Map<String, dynamic> newToDo = {};
-      newToDo["title"] = _toDoController.text.trim();
-      _toDoController.text = "";
-      newToDo["ok"] = false;
-      _toDoList.add(newToDo); 
-      _saveData();
+        Map<String, dynamic> newToDo = {};
+        newToDo["title"] = _toDoController.text.trim();
+        _toDoController.text = "";
+        newToDo["ok"] = false;
+        newToDo["dateComp"] = _dateTime;
+        newToDo["date"] = "${_dateTime.substring(6,8)}/${_dateTime.substring(4,6)}/${_dateTime.substring(0,4)}";
+        _dateTime = getDate(DateTime.now());
+        _toDoList.add(newToDo); 
+        _refresh(0);
+        _saveData();
       });
     }
   }
   
-  Future<Null> _refresh() async {
-    await Future.delayed(Duration(seconds: 1));
+  Future<Null> _refresh(int sec) async {
+    await Future.delayed(Duration(seconds: sec));
     setState(() {
+      _toDoList.sort((a, b) {
+        if(int.parse(a["dateComp"]) > int.parse(b["dateComp"])) {
+          return 1;
+        }
+        else if(int.parse(a["dateComp"]) < int.parse(b["dateComp"])){
+          return -1;
+        }
+        else {
+          return 0;
+        }
+      });
+
       _toDoList.sort((a, b) {
         if(a["ok"] && !b["ok"]) {
           return 1;
@@ -97,7 +125,7 @@ class _HomeState extends State<Home> {
         centerTitle: true,
       ),
       body: RefreshIndicator(
-        onRefresh: _refresh,
+        onRefresh: () => _refresh(1),
         child: Column(
           children: <Widget>[
             Container(
@@ -107,7 +135,8 @@ class _HomeState extends State<Home> {
                   Expanded(
                     child: Padding(
                       padding: EdgeInsets.only(right: 30),
-                      child: TextField(
+                      child: TextField( 
+                        
                         autocorrect: false,
                         //autofocus: true,
                         style: TextStyle(
@@ -115,18 +144,41 @@ class _HomeState extends State<Home> {
                         ),
                         controller: _toDoController,
                         decoration: InputDecoration(
+                          suffixIcon: InkWell(
+                                excludeFromSemantics: false,
+                                borderRadius: BorderRadius.circular(30),
+                                onTap: () => 
+                                  showDatePicker( 
+                                    context: context,
+                                    initialDate: DateTime.now(),
+                                    firstDate: DateTime(2018),
+                                    lastDate: DateTime(2050)
+                                  ).then((date) {
+                                  setState(() {
+                                    _dateTime = getDate(date);
+                                  });
+                                }),
+                                child: Icon(
+                                  Icons.calendar_today, 
+                                  color: Colors.grey, 
+                                  size: 20,),),
                           hasFloatingPlaceholder: false,
                           labelText: "Nova tarefa",
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(100)),
                           filled: true,
-                          enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white), borderRadius: BorderRadius.circular(15)),
-                          focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white), borderRadius: BorderRadius.circular(15)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(100)),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(15)),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white), 
+                            borderRadius: BorderRadius.circular(15)),
                         ),
                       ),
                     ),
                   ),
                   RaisedButton(
-                    color: Color.fromRGBO(240, 210, 58, 1),
+                    color: yellow,
                     elevation: 5,
                     padding: EdgeInsets.fromLTRB(0, 15, 0, 15),
                     shape: RoundedRectangleBorder(
@@ -163,18 +215,19 @@ class _HomeState extends State<Home> {
       ),
       direction: DismissDirection.startToEnd,
       child: CheckboxListTile(
-        activeColor: Color.fromRGBO(240, 210, 58, 1),
-
+        activeColor: yellow,
         title: Text(_toDoList[index]["title"]),
         value: _toDoList[index]["ok"],
+        subtitle: Text(_toDoList[index]["date"], style: TextStyle(fontSize: 13),),
         secondary: CircleAvatar(
-          backgroundColor: Color.fromRGBO(240, 210, 58, 1),
+          backgroundColor: yellow,
           foregroundColor: Colors.white,
           child: Icon(_toDoList[index]["ok"] ? Icons.check : Icons.hourglass_empty),
         ),
         onChanged: (check) {
           setState(() {
             _toDoList[index]["ok"] = check;
+            _refresh(1);
             _saveData();
           });
         },
@@ -187,7 +240,10 @@ class _HomeState extends State<Home> {
           _saveData();
 
           final snack = SnackBar(
-            content: Text("Tarefa \"${_lastRemoved["title"]}\" removida!"),
+            backgroundColor: Color.fromRGBO(245, 245, 245, 1),
+            content: Text(
+              "Tarefa \"${_lastRemoved["title"]}\" removida!", 
+              style: TextStyle(color: Color.fromRGBO(112, 112, 112, 1)),),
             action: SnackBarAction(
               label: "Desfazer",
               onPressed: () {

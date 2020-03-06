@@ -81,8 +81,8 @@ class _HomeState extends State<Home> {
     }
   }
   
-  Future<Null> _refresh(int sec) async {
-    await Future.delayed(Duration(seconds: sec));
+  Future<Null> _refresh(int time) async {
+    await Future.delayed(Duration(milliseconds: time));
     setState(() {
       _toDoList.sort((a, b) {
         if(int.parse(a["dateComp"]) > int.parse(b["dateComp"])) {
@@ -125,7 +125,7 @@ class _HomeState extends State<Home> {
         centerTitle: true,
       ),
       body: RefreshIndicator(
-        onRefresh: () => _refresh(1),
+        onRefresh: () => _refresh(1000),
         child: Column(
           children: <Widget>[
             Container(
@@ -227,7 +227,7 @@ class _HomeState extends State<Home> {
         onChanged: (check) {
           setState(() {
             _toDoList[index]["ok"] = check;
-            _refresh(1);
+            _refresh(250);
             _saveData();
           });
         },
